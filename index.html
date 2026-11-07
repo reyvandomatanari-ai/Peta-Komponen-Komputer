@@ -1,0 +1,675 @@
+<title>Peta Komponen Komputer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Konsep: peta papan sirkuit. Satu panel diagram di kiri, satu panel penjelasan di kanan.
+   Hijau PCB sebagai aksen, tembaga untuk jalur dan label sekunder. */
+:root{
+  --bg:#F1F4F0; --surface:#FFFFFF; --fg:#13201A; --muted:#55645B;
+  --line:#D2DCD4; --line-strong:#8FA195;
+  --accent:#0F7A4A; --accent-soft:#D6EEDF; --on-accent:#FFFFFF;
+  --copper:#8A4F12; --copper-soft:#F4E6D4; --trace:#B07A3C;
+  --board:#E6EDE7; --blade:#DCE6DE;
+  --bad:#B3261E; --bad-soft:#F8DEDB;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1613; --surface:#16201B; --fg:#E5EEE8; --muted:#9DAEA4;
+    --line:#263329; --line-strong:#4A6154;
+    --accent:#4CC68D; --accent-soft:#1B3A2B; --on-accent:#06140D;
+    --copper:#E2A765; --copper-soft:#392A17; --trace:#C69352;
+    --board:#121C17; --blade:#22312A;
+    --bad:#F2877F; --bad-soft:#3B1D1A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1613; --surface:#16201B; --fg:#E5EEE8; --muted:#9DAEA4;
+  --line:#263329; --line-strong:#4A6154;
+  --accent:#4CC68D; --accent-soft:#1B3A2B; --on-accent:#06140D;
+  --copper:#E2A765; --copper-soft:#392A17; --trace:#C69352;
+  --board:#121C17; --blade:#22312A;
+  --bad:#F2877F; --bad-soft:#3B1D1A;
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:400 16px/1.6 var(--body);
+  padding-block:28px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1080px;margin:0 auto}
+
+.eyebrow{font:500 12px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+h1{font:700 clamp(30px,5.5vw,48px)/1.05 var(--display);letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+h2{font:700 clamp(24px,3.6vw,32px)/1.15 var(--display);letter-spacing:-.01em;margin:0 0 4px;text-wrap:balance}
+h3{font:500 12px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px}
+p{margin:0 0 12px}
+.lede{max-width:60ch;color:var(--muted);margin:0 0 24px}
+
+/* Tab */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow-x:auto}
+.tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:12px 16px;font:600 15px var(--body);color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab:focus-visible,.btn:focus-visible,.chip:focus-visible,.opt:focus-visible,.dot:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Tata letak dua kolom */
+.cols{display:grid;gap:20px;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:start}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (max-width:880px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;min-width:0}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+.diagram svg{display:block;width:100%;height:auto}
+
+/* Tombol */
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 16px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--fg);font:600 14px var(--body);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.08)}
+
+/* Chip komponen */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--fg);font:500 14px var(--body);cursor:pointer}
+.chip b{font:500 12px var(--mono);color:var(--muted)}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.chip[aria-pressed="true"] b{color:inherit;opacity:.8}
+.hint{font:400 13px var(--mono);color:var(--muted);margin:0}
+@media (hover:none){.hint{display:none}}
+
+/* Panel detail */
+.full{font:400 14px var(--mono);color:var(--muted);margin:0 0 12px}
+.role{font:500 14px var(--mono);color:var(--accent);margin:0 0 16px}
+.tag{display:inline-block;font:500 11px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase;background:var(--copper-soft);color:var(--copper);padding:2px 8px;border-radius:4px;margin-right:8px}
+dl.facts{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:10px 16px;margin:0}
+dl.facts dt{font:500 12px/1.7 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+dl.facts dd{margin:0}
+@media (max-width:480px){dl.facts{grid-template-columns:minmax(0,1fr);gap:2px}dl.facts dd{margin-bottom:10px}}
+.stepnav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+
+/* SVG: papan */
+.part{cursor:pointer}
+.part .shape{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.5;transition:fill .15s,stroke .15s}
+.part .shape.board{fill:var(--board)}
+.part:hover .shape{stroke:var(--accent)}
+.part.sel .shape{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+.part .trace{stroke:var(--trace);stroke-width:2;fill:none}
+.part.sel .trace{stroke:var(--accent);stroke-width:3}
+.part .hit{fill:transparent;stroke:none}
+.part .port{fill:var(--line);stroke:var(--line-strong);stroke-width:1}
+.part.sel .port{fill:var(--surface)}
+.lbl{font:600 13px var(--mono);fill:var(--fg);pointer-events:none;user-select:none}
+.sub{font:500 10px var(--mono);fill:var(--muted);pointer-events:none;user-select:none}
+.fan{pointer-events:none;transform-box:fill-box;transform-origin:center}
+.blade{fill:var(--blade);stroke:var(--line-strong);stroke-width:1}
+.hub{fill:var(--line-strong)}
+.part.sel .fan{animation:spin 1.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SVG: alur data */
+.node rect.box{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.5;transition:fill .2s,stroke .2s}
+.node.on rect.box{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+.node rect.cache{fill:var(--board);stroke:var(--line-strong);stroke-width:1;transition:fill .2s,stroke .2s}
+.node rect.cache.on{fill:var(--surface);stroke:var(--accent);stroke-width:2.5}
+.nm{font:700 17px var(--display);fill:var(--fg);pointer-events:none}
+.sb{font:400 11.5px var(--mono);fill:var(--muted);pointer-events:none}
+.stub{stroke:var(--trace);stroke-width:3}
+.stub.on{stroke:var(--accent);stroke-dasharray:6 6;animation:dash .9s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-24}}
+#busbar{fill:var(--board);stroke:var(--trace);stroke-width:2;transition:stroke .2s}
+#busbar.on{stroke:var(--accent);stroke-width:3}
+.busflow{stroke:var(--trace);stroke-width:2;opacity:.5}
+.busflow.on{stroke:var(--accent);opacity:1;stroke-dasharray:10 8;animation:dash .9s linear infinite}
+.busl{font:500 11px var(--mono);letter-spacing:.08em;fill:var(--muted)}
+
+.buschip{margin:0 0 16px}
+.buschip b{font:500 14px var(--mono);color:var(--copper)}
+.dots{display:flex;gap:6px;flex-wrap:wrap;margin:20px 0}
+.dot{appearance:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);font:500 12px var(--mono);cursor:pointer;padding:0}
+.dot[aria-current="step"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+
+/* Kuis */
+.quiz{max-width:720px;margin:0 auto}
+.segs{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin:0 0 20px}
+.seg{height:6px;border-radius:3px;background:var(--line)}
+.seg.ok{background:var(--accent)}
+.seg.bad{background:var(--bad)}
+.seg.cur{background:var(--line-strong)}
+.qtext{font:600 20px/1.35 var(--display);margin:0 0 20px;text-wrap:balance;outline:none}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{appearance:none;display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--fg);font:400 16px/1.45 var(--body);cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default;opacity:1}
+.opt .ltr{font:500 13px/1.6 var(--mono);color:var(--muted);flex:none}
+.opt .verdict{margin-left:auto;font:500 12px/1.8 var(--mono);flex:none;padding-left:8px}
+.opt.correct{border-color:var(--accent);background:var(--accent-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .verdict{color:var(--bad)}
+.opt.correct .verdict{color:var(--accent)}
+.fb{margin:20px 0 0}
+.fb p{margin:0 0 16px}
+.score{font:700 clamp(44px,10vw,72px)/1 var(--display);letter-spacing:-.03em;margin:4px 0 8px}
+.review{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.review li{padding:12px 14px;border:1px solid var(--line);border-radius:8px}
+.review .a{color:var(--accent);font-weight:600}
+
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font:400 13px var(--mono);color:var(--muted)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Arsitektur dan Organisasi Komputer</p>
+    <h1>Peta Komponen Komputer</h1>
+    <p class="lede">Klik bagian mana pun pada papan untuk melihat fungsinya, ikuti perjalanan satu perintah dari keyboard sampai layar, lalu uji pemahamanmu dengan kuis.</p>
+    <div class="tabs" role="tablist" aria-label="Menu aplikasi">
+      <button class="tab" role="tab" id="tab-jelajahi" data-tab="jelajahi" aria-controls="p-jelajahi" aria-selected="true" type="button">Jelajahi</button>
+      <button class="tab" role="tab" id="tab-alur" data-tab="alur" aria-controls="p-alur" aria-selected="false" type="button">Alur data</button>
+      <button class="tab" role="tab" id="tab-kuis" data-tab="kuis" aria-controls="p-kuis" aria-selected="false" type="button">Kuis</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- JELAJAHI -->
+    <section id="p-jelajahi" role="tabpanel" aria-labelledby="tab-jelajahi">
+      <div class="cols">
+        <div class="col">
+          <div class="diagram">
+            <svg id="board" viewBox="0 0 700 440" role="group" aria-label="Diagram papan komputer. Pilih sebuah bagian untuk melihat penjelasannya, atau gunakan tombol komponen di bawah diagram.">
+              <g class="part" data-id="mobo"><rect class="shape board" x="10" y="10" width="560" height="420" rx="14"/></g>
+              <text class="sub" x="26" y="30" style="letter-spacing:.08em">MOTHERBOARD</text>
+
+              <!-- System Bus: tiga jalur paralel -->
+              <g class="part" data-id="bus">
+                <rect class="hit" x="288" y="118" width="154" height="84"/>
+                <rect class="hit" x="222" y="238" width="64" height="64"/>
+                <rect class="hit" x="444" y="250" width="78" height="52"/>
+                <path class="trace" d="M290 130H440M290 160H440M290 190H440"/>
+                <path class="trace" d="M234 240V300M250 242V300M266 240V300"/>
+                <path class="trace" d="M452 252V300M481 252V300M510 252V300"/>
+              </g>
+
+              <!-- Input / Output: panel belakang dan perangkat luar -->
+              <g class="part" data-id="io">
+                <rect class="shape" x="4" y="60" width="52" height="190" rx="4"/>
+                <rect class="port" x="14" y="76" width="32" height="18" rx="2"/>
+                <rect class="port" x="14" y="106" width="32" height="18" rx="2"/>
+                <rect class="port" x="14" y="136" width="32" height="18" rx="2"/>
+                <rect class="port" x="14" y="166" width="32" height="18" rx="2"/>
+                <text class="sub" x="30" y="226" text-anchor="middle">I/O</text>
+                <rect class="shape" x="596" y="232" width="88" height="60" rx="4"/>
+                <rect class="shape" x="630" y="292" width="20" height="10"/>
+                <rect class="shape" x="616" y="302" width="48" height="5" rx="2"/>
+                <rect class="shape" x="596" y="326" width="88" height="28" rx="4"/>
+                <ellipse class="shape" cx="640" cy="388" rx="14" ry="20"/>
+                <text class="lbl" x="640" y="428" text-anchor="middle">Input / Output</text>
+              </g>
+
+              <!-- Pendingin (kipas di atas soket CPU) -->
+              <g class="part" data-id="cooling">
+                <circle class="shape" cx="250" cy="160" r="82"/>
+                <g class="fan" data-cx="250" data-cy="160" data-r="72"></g>
+                <text class="lbl" x="250" y="70" text-anchor="middle">Pendingin</text>
+              </g>
+
+              <!-- CPU dan Cache -->
+              <g class="part" data-id="cpu">
+                <rect class="shape" x="208" y="118" width="84" height="84" rx="6"/>
+                <text class="lbl" x="250" y="136" text-anchor="middle">CPU</text>
+              </g>
+              <g class="part" data-id="cache">
+                <rect class="shape" x="228" y="146" width="44" height="44" rx="4"/>
+                <text class="sub" x="250" y="172" text-anchor="middle">Cache</text>
+              </g>
+
+              <!-- RAM -->
+              <g class="part" data-id="ram">
+                <rect class="shape" x="440" y="60" width="16" height="190" rx="2"/>
+                <rect class="shape" x="462" y="60" width="16" height="190" rx="2"/>
+                <rect class="shape" x="484" y="60" width="16" height="190" rx="2"/>
+                <rect class="shape" x="506" y="60" width="16" height="190" rx="2"/>
+                <text class="lbl" x="481" y="50" text-anchor="middle">RAM</text>
+              </g>
+
+              <!-- GPU -->
+              <g class="part" data-id="gpu">
+                <rect class="shape" x="80" y="300" width="290" height="62" rx="6"/>
+                <rect class="shape" x="80" y="362" width="290" height="8" rx="2"/>
+                <g class="fan" data-cx="150" data-cy="331" data-r="22"></g>
+                <g class="fan" data-cx="240" data-cy="331" data-r="22"></g>
+                <text class="lbl" x="318" y="336" text-anchor="middle">GPU</text>
+              </g>
+
+              <!-- Storage -->
+              <g class="part" data-id="storage">
+                <rect class="shape" x="410" y="300" width="140" height="62" rx="6"/>
+                <text class="lbl" x="480" y="327" text-anchor="middle">Storage</text>
+                <text class="sub" x="480" y="345" text-anchor="middle">SSD / HDD</text>
+              </g>
+
+              <!-- PSU -->
+              <g class="part" data-id="psu">
+                <path d="M570 95H590M570 140H590" style="stroke:var(--trace);stroke-width:2;stroke-dasharray:4 3;fill:none"/>
+                <rect class="shape" x="590" y="60" width="100" height="120" rx="6"/>
+                <g class="fan" data-cx="640" data-cy="108" data-r="26"></g>
+                <text class="lbl" x="640" y="168" text-anchor="middle">PSU</text>
+              </g>
+            </svg>
+          </div>
+          <div class="chips" id="chips" aria-label="Pilih komponen"></div>
+          <p class="hint">Tombol panah kiri dan kanan berpindah ke komponen sebelumnya atau berikutnya.</p>
+        </div>
+
+        <div class="panel" id="detail" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ALUR DATA -->
+    <section id="p-alur" role="tabpanel" aria-labelledby="tab-alur" hidden>
+      <div class="cols">
+        <div class="diagram">
+          <svg id="flow" viewBox="0 0 640 290" role="img" aria-label="Alur data antara input, CPU, RAM, storage, GPU, dan output melalui System Bus.">
+            <line class="stub" data-stub="in" x1="95" y1="86" x2="95" y2="134"/>
+            <line class="stub" data-stub="cpu" x1="320" y1="86" x2="320" y2="134"/>
+            <line class="stub" data-stub="out" x1="545" y1="86" x2="545" y2="134"/>
+            <line class="stub" data-stub="sto" x1="95" y1="202" x2="95" y2="154"/>
+            <line class="stub" data-stub="ram" x1="320" y1="202" x2="320" y2="154"/>
+            <line class="stub" data-stub="gpu" x1="545" y1="202" x2="545" y2="154"/>
+            <rect id="busbar" x="20" y="134" width="600" height="20" rx="4"/>
+            <line class="busflow" id="busflow" x1="30" y1="144" x2="610" y2="144"/>
+            <text class="busl" x="207" y="122" text-anchor="middle">SYSTEM BUS</text>
+
+            <g class="node" data-node="in">
+              <rect class="box" x="20" y="16" width="150" height="70" rx="8"/>
+              <text class="nm" x="95" y="46" text-anchor="middle">Input</text>
+              <text class="sb" x="95" y="68" text-anchor="middle">Keyboard · Mouse</text>
+            </g>
+            <g class="node" data-node="cpu">
+              <rect class="box" x="245" y="16" width="150" height="70" rx="8"/>
+              <text class="nm" x="320" y="38" text-anchor="middle">CPU</text>
+              <rect class="cache" id="cachebox" x="270" y="48" width="100" height="26" rx="4"/>
+              <text class="sb" x="320" y="66" text-anchor="middle">Cache</text>
+            </g>
+            <g class="node" data-node="out">
+              <rect class="box" x="470" y="16" width="150" height="70" rx="8"/>
+              <text class="nm" x="545" y="46" text-anchor="middle">Output</text>
+              <text class="sb" x="545" y="68" text-anchor="middle">Monitor · Speaker</text>
+            </g>
+            <g class="node" data-node="sto">
+              <rect class="box" x="20" y="202" width="150" height="70" rx="8"/>
+              <text class="nm" x="95" y="232" text-anchor="middle">Storage</text>
+              <text class="sb" x="95" y="254" text-anchor="middle">SSD / HDD</text>
+            </g>
+            <g class="node" data-node="ram">
+              <rect class="box" x="245" y="202" width="150" height="70" rx="8"/>
+              <text class="nm" x="320" y="232" text-anchor="middle">RAM</text>
+              <text class="sb" x="320" y="254" text-anchor="middle">Memori kerja</text>
+            </g>
+            <g class="node" data-node="gpu">
+              <rect class="box" x="470" y="202" width="150" height="70" rx="8"/>
+              <text class="nm" x="545" y="232" text-anchor="middle">GPU</text>
+              <text class="sb" x="545" y="254" text-anchor="middle">Pengolah grafis</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="panel" aria-live="polite">
+          <p class="eyebrow" id="stepno"></p>
+          <h2 id="steptitle"></h2>
+          <p id="stepdesc" style="margin-top:12px"></p>
+          <p class="buschip" id="stepbus" hidden></p>
+          <div class="dots" id="dots" role="group" aria-label="Pilih langkah"></div>
+          <div class="controls">
+            <button class="btn" id="prev" type="button">Sebelumnya</button>
+            <button class="btn primary" id="next" type="button">Berikutnya</button>
+            <button class="btn" id="play" type="button">Putar otomatis</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KUIS -->
+    <section id="p-kuis" role="tabpanel" aria-labelledby="tab-kuis" hidden>
+      <div class="quiz">
+        <div class="panel" id="quiz"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Reyvando Matanari · Kelas I263C · Informatika · Universitas Pelita Bangsa</footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  /* ---------- Data komponen (urutan sama dengan skrip video) ---------- */
+  var COMPONENTS = [
+    { id: 'cpu', no: 1, short: 'CPU', name: 'Processor / CPU', full: 'Central Processing Unit',
+      role: 'Otak komputer',
+      text: 'CPU mengeksekusi instruksi dari program dan melakukan perhitungan aritmatika maupun logika. Setiap klik, ketikan, dan aplikasi yang berjalan pada akhirnya diterjemahkan menjadi instruksi yang dikerjakan CPU.',
+      facts: [['Satuan kecepatan', 'GHz (miliar siklus per detik)'], ['Contoh', 'Intel Core, AMD Ryzen'], ['Berhubungan dengan', 'Cache, RAM, dan komponen lain lewat System Bus']],
+      partsTitle: 'Bagian di dalam CPU',
+      parts: [['ALU', 'Melakukan perhitungan aritmatika dan logika.'], ['Control Unit', 'Mengatur alur kerja dan mengarahkan instruksi.'], ['Register', 'Memori sementara yang super cepat.']] },
+    { id: 'cache', no: 2, short: 'Cache', name: 'Cache Memory', full: '',
+      role: 'Memori kilat di dekat CPU',
+      text: 'Cache adalah memori berkecepatan sangat tinggi yang berada di dalam atau sangat dekat dengan CPU. Fungsinya menyimpan data dan instruksi yang sering dipakai, sehingga CPU tidak perlu menunggu lama untuk mengambil data dari RAM.',
+      facts: [['Sifat', 'Sangat cepat, kapasitas kecil'], ['Posisi', 'Di dalam atau dekat CPU'], ['Level', 'L1, L2, dan L3']],
+      partsTitle: 'Level cache',
+      parts: [['L1', 'Paling cepat, tetapi kapasitasnya paling kecil.'], ['L2', 'Berada di antara L1 dan L3 dalam kecepatan dan kapasitas.'], ['L3', 'Lebih besar, tetapi sedikit lebih lambat.']] },
+    { id: 'ram', no: 3, short: 'RAM', name: 'RAM', full: 'Random Access Memory',
+      role: 'Memori kerja sementara',
+      text: 'RAM adalah memori utama yang menyimpan data atau instruksi program yang sedang aktif dan berjalan. Sifatnya volatile: saat komputer dimatikan, isi RAM hilang.',
+      analogy: 'Ibarat meja kerja. Semakin luas mejanya, semakin banyak berkas yang bisa dibuka bersamaan.',
+      facts: [['Sifat', 'Volatile (data hilang saat mati)'], ['Fungsi', 'Menyimpan program yang sedang berjalan'], ['Contoh', 'DDR4, DDR5']] },
+    { id: 'storage', no: 4, short: 'Storage', name: 'Storage', full: 'Media penyimpanan: SSD / HDD',
+      role: 'Penyimpanan permanen',
+      text: 'Storage adalah perangkat penyimpanan sekunder seperti SSD atau HDD. Berbeda dengan RAM, storage bersifat non-volatile, sehingga sistem operasi, aplikasi, dan file dokumen tetap tersimpan walaupun komputer dimatikan.',
+      analogy: 'Ibarat lemari arsip. Isinya tetap ada, tetapi harus diambil dulu ke meja kerja (RAM) sebelum dikerjakan.',
+      facts: [['Sifat', 'Non-volatile (data tetap ada)'], ['SSD', 'Tanpa bagian bergerak, lebih cepat'], ['HDD', 'Piringan magnetik, kapasitas besar dengan harga lebih murah']] },
+    { id: 'gpu', no: 5, short: 'GPU', name: 'VGA Card / GPU', full: 'Graphics Processing Unit',
+      role: 'Pengolah grafis',
+      text: 'VGA Card atau kartu grafis bertanggung jawab memproses data grafis dan menampilkan gambar, video, serta animasi dengan halus ke layar monitor. Komponen ini sangat penting untuk desain, rendering, maupun gaming.',
+      facts: [['Fungsi', 'Memproses dan menampilkan grafis'], ['Dipakai untuk', 'Desain, rendering, gaming'], ['Jenis', 'Terintegrasi atau kartu terpisah'], ['Terhubung ke', 'Monitor']] },
+    { id: 'mobo', no: 6, short: 'Motherboard', name: 'Motherboard', full: 'Papan utama',
+      role: 'Papan sirkuit pusat',
+      text: 'Semua komponen dipasang dan dihubungkan pada sebuah papan sirkuit pusat bernama Motherboard. Papan ini menjadi “rumah” yang membuat seluruh komponen bisa saling terhubung dan berkomunikasi.',
+      facts: [['Memuat', 'Soket CPU, slot RAM, slot kartu grafis, konektor storage'], ['Peran', 'Menyatukan dan menghubungkan komponen']] },
+    { id: 'bus', no: 7, short: 'System Bus', name: 'System Bus', full: 'Jalur data',
+      role: 'Jalur komunikasi antar komponen',
+      text: 'Agar transfer data antar komponen berjalan lancar, dibutuhkan System Bus. Jalur ini dibagi menjadi tiga jenis dengan tugas berbeda.',
+      facts: [['Jumlah jalur', 'Tiga: Data, Address, Control']],
+      partsTitle: 'Tiga jenis bus',
+      parts: [['Data Bus', 'Membawa data.'], ['Address Bus', 'Menentukan lokasi memori.'], ['Control Bus', 'Mengirim sinyal perintah.']] },
+    { id: 'psu', no: 8, short: 'PSU', name: 'Power Supply Unit', full: 'Catu daya',
+      role: 'Sumber daya listrik',
+      text: 'PSU mengubah arus listrik AC dari stop kontak menjadi arus DC dengan tegangan yang sesuai, lalu membagikannya ke seluruh komponen. PSU yang tidak stabil atau kapasitasnya kurang bisa membuat komputer mati mendadak, bahkan merusak komponen.',
+      facts: [['Mengubah', 'AC menjadi DC'], ['Satuan kapasitas', 'Watt (W)'], ['Mengalirkan daya ke', 'Motherboard, CPU, GPU, storage']] },
+    { id: 'cooling', no: 9, short: 'Pendingin', name: 'Sistem Pendingin', full: 'Cooling system',
+      role: 'Penjaga suhu',
+      text: 'CPU dan GPU menghasilkan panas saat bekerja. Sistem pendingin menjaga suhu tetap aman supaya performa tidak turun.',
+      facts: [['Melindungi', 'CPU dan GPU']],
+      partsTitle: 'Jenis pendingin',
+      parts: [['Heatsink', 'Menyerap dan menyebarkan panas dari komponen.'], ['Kipas (fan)', 'Mengalirkan udara untuk membuang panas.'], ['Liquid cooling', 'Untuk kebutuhan yang lebih berat.']] },
+    { id: 'io', no: 10, short: 'Input/Output', name: 'Perangkat Input dan Output', full: 'I/O',
+      role: 'Pintu masuk dan keluar data',
+      text: 'Perangkat input dipakai untuk memasukkan data ke komputer, sedangkan perangkat output menampilkan hasil pemrosesan kepada pengguna.',
+      facts: [['Input', 'Keyboard, mouse'], ['Output', 'Monitor, speaker']] }
+  ];
+  var ORDER = COMPONENTS.map(function (c) { return c.id; });
+  var current = 'cpu';
+
+  /* ---------- Kipas pada diagram ---------- */
+  $$('.fan').forEach(function (g) {
+    var cx = +g.dataset.cx, cy = +g.dataset.cy, r = +g.dataset.r, s = '';
+    for (var a = 0; a < 360; a += 90) {
+      s += '<ellipse class="blade" cx="' + cx + '" cy="' + (cy - r * 0.5) + '" rx="' + (r * 0.27) + '" ry="' + (r * 0.48) +
+        '" transform="rotate(' + (a + 20) + ' ' + cx + ' ' + cy + ')"/>';
+    }
+    s += '<circle class="hub" cx="' + cx + '" cy="' + cy + '" r="' + (r * 0.14) + '"/>';
+    g.innerHTML = s;
+  });
+
+  /* ---------- Jelajahi ---------- */
+  var chipsEl = $('#chips'), detailEl = $('#detail');
+  chipsEl.innerHTML = COMPONENTS.map(function (c) {
+    return '<button class="chip" type="button" data-id="' + c.id + '" aria-pressed="false"><b>' + c.no + '</b>' + c.short + '</button>';
+  }).join('');
+
+  function dl(rows) {
+    return '<dl class="facts">' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl>';
+  }
+
+  function renderDetail(c) {
+    var i = ORDER.indexOf(c.id);
+    var h = '<p class="eyebrow">Komponen ' + c.no + ' dari ' + COMPONENTS.length + '</p>' +
+      '<h2>' + c.name + '</h2>' +
+      (c.full ? '<p class="full">' + c.full + '</p>' : '') +
+      '<p class="role">' + c.role + '</p>' +
+      '<p>' + c.text + '</p>' +
+      (c.analogy ? '<p><span class="tag">Analogi</span>' + c.analogy + '</p>' : '') +
+      '<h3>Fakta singkat</h3>' + dl(c.facts) +
+      (c.parts ? '<h3>' + c.partsTitle + '</h3>' + dl(c.parts) : '') +
+      '<div class="stepnav">' +
+      '<button class="btn" type="button" data-nav="-1"' + (i === 0 ? ' disabled' : '') + '>Sebelumnya</button>' +
+      '<button class="btn primary" type="button" data-nav="1"' + (i === ORDER.length - 1 ? ' disabled' : '') + '>Berikutnya</button>' +
+      '</div>';
+    detailEl.innerHTML = h;
+  }
+
+  function select(id) {
+    var c = COMPONENTS.filter(function (x) { return x.id === id; })[0];
+    if (!c) return;
+    current = id;
+    $$('#board .part').forEach(function (p) { p.classList.toggle('sel', p.dataset.id === id); });
+    $$('#chips .chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.id === id)); });
+    renderDetail(c);
+  }
+  function go(delta) {
+    var i = ORDER.indexOf(current) + delta;
+    if (i >= 0 && i < ORDER.length) select(ORDER[i]);
+  }
+
+  $('#board').addEventListener('click', function (e) {
+    var p = e.target.closest('.part');
+    if (p) select(p.dataset.id);
+  });
+  chipsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.chip');
+    if (b) select(b.dataset.id);
+  });
+  detailEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-nav]');
+    if (b && !b.disabled) go(+b.dataset.nav);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (activeTab !== 'jelajahi') return;
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    if (e.target.closest && e.target.closest('[role="tablist"]')) return;
+    go(e.key === 'ArrowRight' ? 1 : -1);
+  });
+
+  /* ---------- Alur data ---------- */
+  var STEPS = [
+    { t: 'Kamu menekan tombol', on: ['in'], bus: '',
+      d: 'Kamu menekan tombol keyboard atau mengklik mouse untuk membuka sebuah dokumen. Perangkat input mengubah aksi itu menjadi sinyal.' },
+    { t: 'Sinyal sampai ke CPU', on: ['in', 'cpu'], bus: 'Control Bus',
+      d: 'Sinyal perintah dikirim lewat Control Bus ke CPU. Control Unit di dalam CPU mengenali perintahnya: buka dokumen.' },
+    { t: 'CPU mengecek Cache', on: ['cpu'], bus: '',
+      d: 'CPU mencari data yang dibutuhkan di Cache lebih dulu karena memori ini paling cepat. Dokumen ini belum pernah dibuka, jadi datanya belum ada di sana.' },
+    { t: 'CPU menanyakan ke RAM', on: ['cpu', 'ram'], bus: 'Address Bus',
+      d: 'CPU menentukan lokasi memori lewat Address Bus dan mencarinya di RAM. Program dan dokumen itu ternyata belum dimuat ke RAM.' },
+    { t: 'Data dicari di Storage', on: ['ram', 'sto'], bus: 'Control Bus',
+      d: 'Karena belum ada di RAM, sistem membacanya dari Storage (SSD atau HDD), tempat file tersimpan permanen.' },
+    { t: 'Data dimuat ke RAM', on: ['sto', 'ram'], bus: 'Data Bus',
+      d: 'Isi dokumen dibawa lewat Data Bus dari Storage ke RAM, sehingga siap dikerjakan.' },
+    { t: 'CPU memproses data', on: ['ram', 'cpu'], bus: 'Data Bus',
+      d: 'CPU mengambil data dari RAM lewat Data Bus. ALU menghitung, Control Unit mengatur urutan kerja, dan data yang sering dipakai disimpan di Cache.' },
+    { t: 'GPU menyiapkan gambar', on: ['cpu', 'gpu'], bus: 'Data Bus',
+      d: 'Hasil pemrosesan diteruskan ke GPU untuk diubah menjadi gambar: teks, warna, dan tampilan jendela.' },
+    { t: 'Hasil tampil di layar', on: ['gpu', 'out'], bus: '',
+      d: 'GPU mengirim gambar ke monitor, dan dokumen terbuka. Selama proses ini, PSU terus mengalirkan listrik ke semua komponen dan sistem pendingin menjaga suhu tetap aman.' }
+  ];
+  var step = 0, timer = null;
+  var dotsEl = $('#dots');
+  dotsEl.innerHTML = STEPS.map(function (s, i) {
+    return '<button class="dot" type="button" data-step="' + i + '" aria-label="Langkah ' + (i + 1) + '">' + (i + 1) + '</button>';
+  }).join('');
+
+  function renderStep() {
+    var s = STEPS[step];
+    var multi = s.on.length > 1;
+    $$('[data-node]').forEach(function (n) { n.classList.toggle('on', s.on.indexOf(n.dataset.node) > -1); });
+    $$('[data-stub]').forEach(function (n) { n.classList.toggle('on', multi && s.on.indexOf(n.dataset.stub) > -1); });
+    $('#cachebox').classList.toggle('on', step === 2);
+    $('#busbar').classList.toggle('on', multi);
+    $('#busflow').classList.toggle('on', multi);
+    $('#stepno').textContent = 'Langkah ' + (step + 1) + ' dari ' + STEPS.length;
+    $('#steptitle').textContent = s.t;
+    $('#stepdesc').textContent = s.d;
+    var bus = $('#stepbus');
+    if (s.bus) { bus.hidden = false; bus.innerHTML = 'Jalur yang dipakai: <b>' + s.bus + '</b>'; } else { bus.hidden = true; }
+    $$('.dot', dotsEl).forEach(function (d, i) {
+      if (i === step) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current');
+    });
+    $('#prev').disabled = step === 0;
+    $('#next').disabled = step === STEPS.length - 1;
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; }
+    $('#play').textContent = 'Putar otomatis';
+  }
+  function startPlay() {
+    if (step >= STEPS.length - 1) { step = 0; renderStep(); }
+    $('#play').textContent = 'Jeda';
+    timer = setInterval(function () {
+      if (step < STEPS.length - 1) { step++; renderStep(); } else { stopPlay(); }
+    }, 3800);
+  }
+  $('#prev').addEventListener('click', function () { stopPlay(); if (step > 0) { step--; renderStep(); } });
+  $('#next').addEventListener('click', function () { stopPlay(); if (step < STEPS.length - 1) { step++; renderStep(); } });
+  $('#play').addEventListener('click', function () { if (timer) stopPlay(); else startPlay(); });
+  dotsEl.addEventListener('click', function (e) {
+    var d = e.target.closest('.dot');
+    if (d) { stopPlay(); step = +d.dataset.step; renderStep(); }
+  });
+
+  /* ---------- Kuis ---------- */
+  var QUIZ = [
+    { q: 'Komponen apa yang berperan sebagai “otak” komputer?', o: ['CPU', 'RAM', 'Motherboard', 'Power Supply Unit'], a: 0,
+      e: 'CPU mengeksekusi instruksi program dan melakukan perhitungan aritmatika serta logika.' },
+    { q: 'Memori berkecepatan sangat tinggi di dalam atau dekat CPU yang menyimpan data yang sering dipakai disebut...', o: ['Storage', 'Cache', 'VGA Card', 'System Bus'], a: 1,
+      e: 'Cache menyimpan data dan instruksi yang sering dipakai, jadi CPU tidak perlu menunggu data dari RAM.' },
+    { q: 'Apa arti sifat volatile pada RAM?', o: ['Datanya tersimpan permanen', 'Datanya hilang saat komputer dimatikan', 'Datanya hanya bisa dibaca', 'Datanya tersimpan pada piringan magnetik'], a: 1,
+      e: 'RAM bersifat volatile: isinya hilang saat komputer dimatikan.' },
+    { q: 'Perangkat mana yang menyimpan sistem operasi dan file tetap aman walau komputer dimatikan?', o: ['RAM', 'Register', 'SSD atau HDD', 'Cache'], a: 2,
+      e: 'Storage (SSD atau HDD) bersifat non-volatile, jadi datanya tetap tersimpan.' },
+    { q: 'Komponen yang memproses data grafis untuk ditampilkan ke monitor adalah...', o: ['GPU', 'PSU', 'ALU', 'Control Bus'], a: 0,
+      e: 'GPU (kartu grafis) memproses gambar, video, dan animasi sebelum ditampilkan ke monitor.' },
+    { q: 'Papan sirkuit pusat tempat semua komponen dipasang dan saling terhubung adalah...', o: ['Heatsink', 'Storage', 'Motherboard', 'Cache'], a: 2,
+      e: 'Motherboard menjadi “rumah” yang menghubungkan seluruh komponen.' },
+    { q: 'Jalur pada System Bus yang menentukan lokasi memori adalah...', o: ['Data Bus', 'Address Bus', 'Control Bus', 'Power Bus'], a: 1,
+      e: 'Address Bus menentukan lokasi memori. Data Bus membawa data, Control Bus mengirim sinyal perintah.' },
+    { q: 'Power Supply Unit mengubah arus listrik...', o: ['DC dari baterai menjadi AC', 'AC dari stop kontak menjadi DC', 'AC menjadi sinyal digital', 'DC menjadi data'], a: 1,
+      e: 'PSU mengubah arus AC dari stop kontak menjadi arus DC dengan tegangan yang sesuai untuk tiap komponen.' },
+    { q: 'Apa tugas heatsink dan kipas pada komputer?', o: ['Menambah kapasitas RAM', 'Mempercepat transfer data', 'Menjaga suhu CPU dan GPU tetap aman', 'Mengubah arus listrik'], a: 2,
+      e: 'Pendingin membuang panas dari CPU dan GPU supaya performa tidak turun.' },
+    { q: 'Manakah yang termasuk perangkat output?', o: ['Keyboard', 'Mouse', 'Monitor', 'Mikrofon'], a: 2,
+      e: 'Monitor dan speaker menampilkan hasil pemrosesan. Keyboard, mouse, dan mikrofon adalah perangkat input.' }
+  ];
+  var quizEl = $('#quiz');
+  var qi = 0, score = 0, locked = false, results = [], opts = [], missed = [];
+
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function segs() {
+    var h = '<div class="segs" aria-hidden="true">';
+    for (var i = 0; i < QUIZ.length; i++) {
+      var c = results[i] ? results[i] : (i === qi ? 'cur' : '');
+      h += '<span class="seg ' + c + '"></span>';
+    }
+    return h + '</div>';
+  }
+  function startQuiz() { qi = 0; score = 0; results = []; missed = []; renderQ(); }
+  function renderQ() {
+    var item = QUIZ[qi];
+    locked = false;
+    opts = shuffle(item.o.map(function (t, i) { return { t: t, ok: i === item.a }; }));
+    var letters = ['A', 'B', 'C', 'D'];
+    quizEl.innerHTML = segs() +
+      '<p class="eyebrow">Pertanyaan ' + (qi + 1) + ' dari ' + QUIZ.length + '</p>' +
+      '<p class="qtext" tabindex="-1" id="qtext">' + item.q + '</p>' +
+      '<div class="opts">' + opts.map(function (o, i) {
+        return '<button class="opt" type="button" data-i="' + i + '"><span class="ltr">' + letters[i] + '</span><span>' + o.t + '</span></button>';
+      }).join('') + '</div>' +
+      '<div class="fb" id="fb" hidden></div>';
+  }
+  function answer(i) {
+    if (locked) return;
+    locked = true;
+    var item = QUIZ[qi], ok = opts[i].ok;
+    if (ok) { score++; results[qi] = 'ok'; } else { results[qi] = 'bad'; missed.push({ q: item.q, a: item.o[item.a] }); }
+    $$('.opt', quizEl).forEach(function (b, k) {
+      b.disabled = true;
+      var v = document.createElement('span');
+      v.className = 'verdict';
+      if (opts[k].ok) { b.classList.add('correct'); v.textContent = ok && k === i ? 'Benar' : 'Jawaban benar'; b.appendChild(v); }
+      else if (k === i) { b.classList.add('wrong'); v.textContent = 'Kurang tepat'; b.appendChild(v); }
+    });
+    var last = qi === QUIZ.length - 1;
+    var fb = $('#fb');
+    fb.hidden = false;
+    fb.innerHTML = '<p>' + item.e + '</p><button class="btn primary" type="button" data-q="next" id="nextq">' + (last ? 'Lihat hasil' : 'Pertanyaan berikutnya') + '</button>';
+    $('#nextq').focus();
+    var sg = $('.segs', quizEl);
+    if (sg) sg.outerHTML = segs();
+  }
+  function renderResult() {
+    var msg = score >= 9 ? 'Sangat baik. Kamu menguasai komponen-komponen utama komputer.'
+      : score >= 6 ? 'Bagus. Beberapa bagian masih bisa diulang di tab Jelajahi.'
+      : 'Ayo pelajari lagi di tab Jelajahi, lalu coba kuis ini sekali lagi.';
+    quizEl.innerHTML = '<p class="eyebrow">Hasil kuis</p>' +
+      '<p class="score" id="qtext" tabindex="-1" style="outline:none">' + score + ' dari ' + QUIZ.length + '</p>' +
+      '<p>' + msg + '</p>' +
+      (missed.length ? '<h3>Yang perlu diulang</h3><ul class="review">' + missed.map(function (m) {
+        return '<li>' + m.q + '<br><span class="a">Jawaban: ' + m.a + '</span></li>';
+      }).join('') + '</ul>' : '') +
+      '<div class="controls" style="margin-top:24px"><button class="btn primary" type="button" data-q="again">Ulangi kuis</button>' +
+      '<button class="btn" type="button" data-q="learn">Kembali ke Jelajahi</button></div>';
+    var t = $('#qtext'); if (t) t.focus();
+  }
+  quizEl.addEventListener('click', function (e) {
+    var o = e.target.closest('.opt');
+    if (o) { answer(+o.dataset.i); return; }
+    var n = e.target.closest('[data-q]');
+    if (!n) return;
+    var k = n.dataset.q;
+    if (k === 'next') {
+      if (qi < QUIZ.length - 1) { qi++; renderQ(); var t = $('#qtext'); if (t) t.focus(); } else { renderResult(); }
+    } else if (k === 'again') { startQuiz(); }
+    else if (k === 'learn') { showTab('jelajahi'); }
+  });
+
+  /* ---------- Tab dan hash ---------- */
+  var TABS = ['jelajahi', 'alur', 'kuis'];
+  var activeTab = 'jelajahi';
+  function showTab(name) {
+    if (TABS.indexOf(name) < 0) name = 'jelajahi';
+    activeTab = name;
+    if (name !== 'alur') stopPlay();
+    TABS.forEach(function (t) {
+      $('#p-' + t).hidden = t !== name;
+      $('#tab-' + t).setAttribute('aria-selected', String(t === name));
+    });
+    if (location.hash !== '#' + name) {
+      try { history.replaceState(null, '', '#' + name); } catch (err) { location.hash = name; }
+    }
+  }
+  $$('.tab').forEach(function (b) { b.addEventListener('click', function () { showTab(b.dataset.tab); }); });
+  window.addEventListener('hashchange', function () { showTab(location.hash.replace('#', '')); });
+
+  /* ---------- Mulai ---------- */
+  select('cpu');
+  renderStep();
+  startQuiz();
+  showTab(location.hash.replace('#', '') || 'jelajahi');
+})();
+</script>
